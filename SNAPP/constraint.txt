@@ -1,0 +1,2 @@
+lognormal(0,1.624,0.25)	crown	 Chawil,Chimye,Chiham-a,Chiham-b,Chiras-Pen,Chiras-SO,Chiras-Wedd
+monophyletic	NA	Chimye,Chiham-a,Chiham-b,Chiras-Pen,Chiras-SO,Chiras-Wedd
