@@ -1,0 +1,13 @@
+// Priors and rules file
+// *********************
+
+[PARAMETERS]
+//#isInt? #name   #dist.#min  #max
+//all Ns are in number of haploid individuals
+0  $MIG1$	logunif 1e-10	 0.1	 output
+0  $MIG2$	logunif 1e-10	 0.1	 output
+
+[RULES]
+
+[COMPLEX PARAMETERS]
+
