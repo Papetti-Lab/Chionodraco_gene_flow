@@ -1,6 +1,6 @@
-### ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ ###
-### This file contains the command lines used in a linux terminal to run the analysed presented in the paper "Limited interspecific gene flow in the evolutionary history of the icefish Chionodraco spp." ###
-### ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ ###
+### ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ ###
+### This file contains the command lines used in a linux terminal to run the analysed presented in the paper "Limited interspecific gene flow in the evolutionary history of the icefish genus Chionodraco spp." ###
+### ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ ###
 
 
 	### Quality control with FastQC ###
@@ -13,7 +13,7 @@ echo ${FILE[@]} # check the file names
 # Run FastQC
 for file in ${FILE[@]}
 do
-    fastqc -t 5 ${file} -o $OUT
+    fastqc -t 2 ${file} -o $OUT
 done
 
 
@@ -26,9 +26,9 @@ done
 IN=/path/to/raw/reads/folder
 OUT=/path/to/output/the/processed/files/folder
 # Command line for the first library
-process_radtags -1 $IN/2791_S31_L002_R1_001.fastq.gz -2 $IN/2791_S31_L002_R2_001.fastq.gz -o $OUT -b barcode_library_1.txt -e sbfI -r -c -q -t 143
+process_radtags -1 $IN/2791_S31_L002_R1_001.fastq.gz -2 $IN/2791_S31_L002_R2_001.fastq.gz -o $OUT -b $IN/barcodes_library_01.txt -e sbfI -r -c -q -t 143
 # Command line for the second library
-process_radtags -1 $IN/sample_S0_L006_R1_001.fastq.gz -2 $IN/sample_S0_L006_R2_001.fastq.gz -o $OUT -b barcode_library_2.txt -e sbfI -r -c -q -t 143
+process_radtags -1 $IN/sample_S0_L006_R1_001.fastq.gz -2 $IN/sample_S0_L006_R2_001.fastq.gz -o $OUT -b $IN/barcodes_library_02.txt -e sbfI -r -c -q -t 143
 
 
 
@@ -84,10 +84,15 @@ done
 
 
 	### Calculate alignment statistics ###
-cd /path/to/bam/files/folder
-for bamFile in *.bam
-do
-    samtools flagstat $bamFile -O tsv --threads 8 >> ${bamFile}_flagstat.txt
+IN=/path/to/bam/files/folder
+OUT=/path/to/output/the/processed/files/folder
+cd $IN
+# Define an array with all file names without extension
+NAMES+=($(echo "$(ls *.bam)" | cut -f 1 -d '.'))
+echo ${NAMES[@]} # check the file names
+# Run samtools flagstat
+for i in "${!NAMES[@]}" ; do
+    samtools flagstat $IN/${NAMES[i]}.bam -O tsv --threads 8 >> $OUT/${NAMES[i]}_flagstat.txt
 done
 
 
@@ -270,7 +275,8 @@ done
 cd /path/to/folder/where/you/want/the/output
 INPUT_0=/path/to/populations.snps.vcf	# the VCF file produced by stacks
 INDV=/path/to/text/file/containg ten random individuals per species
-vcftools --vcf $INPUT_0 --remove-indels --minGQ 40 --min-meanDP 10 --max-meanDP 40 --minDP 10 --maxDP 40 --max-missing 0.15 --thin 10000 --keep $INDV --recode --stdout --out snapp > snapp.vcf
+vcftools --vcf $INPUT_0 --remove-indels --minGQ 40 --min-meanDP 10 --max-meanDP 40 --minDP 10 --maxDP 40 --max-missing 0.15 --thin 10000 --keep $INDV --recode --stdout --out snapp0 > snapp0.vcf
+vcftools --vcf snapp0.vcf --keep $INDV --recode --stdout > snapp.vcf
 
 # Generate the SNAPP input file from the filtered vcf file
 INPUT_3=/path/to/snapp.vcf # filtered vcf file 
@@ -315,7 +321,7 @@ beast -threads 20 -overwrite $INPUT_SNAPP
 # Filter the vcf file produced by Stacks
 cd /path/to/folder/where/you/want/the/output
 INPUT_0=/path/to/populations.snps.vcf	# the VCF file produced by stacks
-vcftools --vcf $INPUT_0 --remove-indels --minGQ 40 --min-meanDP 10 --max-meanDP 40 --minDP 10 --maxDP 40 --max-missing 0.15 --thin 1000 --recode --stdout --out fastsimcoal > fastsimcoal.vcf
+vcftools --vcf $INPUT_0 --remove-indels --minGQ 40 --min-meanDP 10 --max-meanDP 40 --minDP 10 --maxDP 40 --max-missing 0.85 --thin 1000 --recode --stdout --out fastsimcoal > fastsimcoal.vcf
 # Convert VCF to SFS
 # Open the file VCFtoSFS_downsample.sh with a text editor and modify the settings to define the VCF file to convert, the tag for the resulting files and the minimum sample size per population
 # The script VCFtoSFS_downsample.sh is availbale at http://cmpg.unibe.ch/software/fastsimcoal27/additionalScripts.html, in the folder buildSFSFromVCF.zip
@@ -369,4 +375,5 @@ cat ${PREFIX}.lhoods | awk '{print NR,$1}' | sort -k 2 >> sorted.txt
 
 # Make a boxplot for the likelihoods present in the file sorted.txt for all the different models
 # Plot observed and expected site frequency spectra in R
+
 
