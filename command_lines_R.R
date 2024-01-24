@@ -1,7 +1,6 @@
-### --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- ###
-### This file contains the command lines used in R to run the analysed presented in the paper "Limited interspecific gene flow in the evolutionary history of the icefish Chionodraco spp." ###
-### --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- ###
-
+### --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- ###
+### This file contains the command lines used in R to run the analysed presented in the paper "Limited interspecific gene flow in the evolutionary history of the icefish genus Chionodraco spp." ###
+### --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- ###
 
 # Set the working directory
 setwd("path/to/your/working/direcotory")
@@ -22,11 +21,11 @@ x <- vcfR2genlight(vcf)
 x$pop <- as.factor(rep(c("hamatus", "myersi", "rastrospinosus", "wilsoni"), c(14, 13, 38, 20)))
 
 ## Define colours for each group
-species.colours <- c("red1", "gold", "dodgerblue4", "springgreen")
+species.colours <- c("red1", "gold", "dodgerblue4", "gray40")
 
 # Compute PCoA
 tab.x <- tab(x, freq=TRUE, NA.method="asis")
-pco.x <- dudi.pco(dist(tab.x), scannf=TRUE, ful=FALSE)
+pco.x <- dudi.pco(dist(tab.x), scannf=FALSE, full=FALSE, nf=4)
 
 
 # Calculate contributions of the displayed principal components to the variance
@@ -34,8 +33,13 @@ var.axis.1 <- pco.x$eig[1]/sum(pco.x$eig)*100
 var.axis.1
 var.axis.2 <- pco.x$eig[2]/sum(pco.x$eig)*100
 var.axis.2
+var.axis.3 <- pco.x$eig[3]/sum(pco.x$eig)*100
+var.axis.3
+var.axis.4 <- pco.x$eig[4]/sum(pco.x$eig)*100
+var.axis.4
 
-# Plot
+
+# Plot PC1 vs PC2
 ggplot(pco.x$li, aes(x=A1, y=A2)) +
   geom_point(aes(fill=x$pop), size=5, shape=21, alpha=0.8) +
   theme_classic() +
@@ -46,9 +50,20 @@ ggplot(pco.x$li, aes(x=A1, y=A2)) +
                                bquote(italic("C. myersi")),
                                bquote(italic("C. rastrospinosus")),
                                bquote(italic("C. wilsoni"))), values=species.colours) +
-  theme(legend.position=c(0.8, 0.3), legend.background=element_rect(linetype="solid",linewidth=0.5,colour ="black"))
+  theme(legend.position="bottom")
 
-
+# Plot PC3 vs PC4
+ggplot(pco.x$li, aes(x=A3, y=A4)) +
+  geom_point(aes(fill=x$pop), size=5, shape=21, alpha=0.8) +
+  theme_classic() +
+  theme_bw(base_size=18) +
+  xlab(paste("PC3 ", "(", round(var.axis.3, 2), " %", ")", sep="")) + 
+  ylab(paste("PC4 ", "(", round(var.axis.4, 2), " %", ")", sep="")) +
+  scale_fill_manual(name="Species:",labels=c(bquote(italic("C. hamatus")),
+                               bquote(italic("C. myersi")),
+                               bquote(italic("C. rastrospinosus")),
+                               bquote(italic("C. wilsoni"))), values=species.colours) +
+  theme(legend.position="bottom")
 
 
 
@@ -63,11 +78,11 @@ y <- vcfR2genlight(rastro.vcf)
 y$pop <- as.factor(rep(c("SO", "AP", "AS", "WS"), c(11, 11, 7, 9)))
 
 ## Define colours for each group
-rastro.colours <- c("#FF69B4", "#FFA500", "#333333", "#008B8B")
+rastro.colours <- c("#D41159", "#FFA500", "#333333", "#1A85FF")
 
 # Compute PCoA
 tab.y <- tab(y, freq=TRUE, NA.method="asis")
-pco.y <- dudi.pco(dist(tab.y), scannf=TRUE, ful=FALSE)
+pco.y <- dudi.pco(dist(tab.y), scannf=FALSE, full=FALSE, nf=2)
 
 
 # Calculate contributions of the displayed principal components to the variance
@@ -86,30 +101,8 @@ ggplot(pco.y$li, aes(x=A1, y=A2)) +
   scale_fill_manual(name="Populations:",
                     labels=c("Antarctic Peninsula","Antarctic Sound","South Orkneys","Weddel Sea"),
                     values=rastro.colours) +
-  theme(legend.position="bottom")
-
-
-
-
-
-	### Fst ###
-
-# Load required package
-library(StAMPP)
-
-# Load data
-vcf <- read.vcfR("dataset2.vcf")
-x <- vcfR2genlight(vcf)
-
-# Define groups
-x$pop <- as.factor(rep(c("hamatus", "myersi", "rastrospinosus", "wilsoni"), c(14, 13, 38, 20)))
-
-# Compute Fst with associated p-values
-fst.stampp <- stamppFst(x, nboots = 1000, percent = 95, nclusters = 8)
-
-# Look at the results
-fst.stampp$Fsts
-fst.stampp$Pvalues
+  theme(legend.position="bottom") +
+  guides(fill=guide_legend(nrow=2, byrow=TRUE))
 
 
 
@@ -138,7 +131,7 @@ cat <- data.frame(Species=rep(c("C. hamatus", "C. myersi", "C. rastrospinosus", 
                                          c(14, 13, 38, 20)))
 # Plot
 plotQ(qvalues, showindlab=F, showlegend=F, showsp=T, showyaxis=T, showticks=T, 
-      clustercol=c("springgreen", "red1", "gold", "dodgerblue4"),
+      clustercol=c("gray40", "red1", "gold", "dodgerblue4"), barbordercolour="black",
       splab=c("K=4"), grplab=cat, grplabface="italic", grplabsize=1.2,
       exportpath=getwd(), imgtype="pdf")
 
